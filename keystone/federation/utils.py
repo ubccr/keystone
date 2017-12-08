@@ -199,6 +199,9 @@ MAPPING_SCHEMA = {
                 },
                 "whitelist": {
                     "type": "array"
+                },
+                "regex": {
+                    "type": "boolean"
                 }
             }
         },
@@ -809,13 +812,19 @@ class RuleProcessor(object):
                                      if v not in blacklisted_values]
             elif whitelisted_values is not None:
                 direct_map_values = [v for v in direct_map_values
-                                     if v in whitelisted_values]
+                                     if self._test_whitelist(regex, whitelisted_values, v)]
 
             direct_maps.add(direct_map_values)
 
             LOG.debug('updating a direct mapping: %s', direct_map_values)
 
         return direct_maps
+
+    def _test_whitelist(self, regex, whitelisted_values, value):
+        if regex:
+            return self._evaluate_values_by_regex(whitelisted_values, [value])
+        else:
+            return value in whitelisted_values
 
     def _evaluate_values_by_regex(self, values, assertion_values):
         for value in values:
